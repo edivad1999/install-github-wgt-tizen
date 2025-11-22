@@ -1,0 +1,20 @@
+# Certificates (sensitive)
+*.p12
+*.pfx
+
+# WGT packages
+*.wgt
+
+# Docker
+.docker/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+*~

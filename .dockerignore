@@ -1,0 +1,23 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+install-jellyfin-tizen/
+
+# Docker
+Dockerfile
+.dockerignore
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
