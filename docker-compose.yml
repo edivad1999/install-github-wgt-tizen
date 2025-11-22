@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # Generic installer - configure via .env with CUSTOM_* variables
+  custom:
+    image: ghcr.io/edivad1999/install-github-wgt-tizen:latest
+    # Uncomment for local development:
+    # build: .
+    network_mode: host
+    env_file:
+      - .env
+    environment:
+      - TV_IP=${TV_IP}
+      - REPO_URL=${CUSTOM_REPO_URL}
+      - WGT_FILE=${CUSTOM_WGT_FILE}
+      - VERSION=${CUSTOM_VERSION:-}
+      - CERT_PASSWORD=${CERT_PASSWORD:-}
+    volumes:
+      - ${CERT_DIR:-.}:/certificates:ro
+
+  # Jellyfin installer
+  jellyfin:
+    image: ghcr.io/edivad1999/install-github-wgt-tizen:latest
+    # Uncomment for local development:
+    # build: .
+    network_mode: host
+    env_file:
+      - .env
+    environment:
+      - TV_IP=${TV_IP}
+      - REPO_URL=${JELLYFIN_REPO_URL:-https://github.com/jeppevinkel/jellyfin-tizen-builds}
+      - WGT_FILE=${JELLYFIN_WGT_FILE:-Jellyfin.wgt}
+      - VERSION=${JELLYFIN_VERSION:-}
+      - CERT_PASSWORD=${CERT_PASSWORD:-}
+    volumes:
+      - ${CERT_DIR:-.}:/certificates:ro
+
+  # Moonlight installer
+  moonlight:
+    image: ghcr.io/edivad1999/install-github-wgt-tizen:latest
+    # Uncomment for local development:
+    # build: .
+    network_mode: host
+    env_file:
+      - .env
+    environment:
+      - TV_IP=${TV_IP}
+      - REPO_URL=${MOONLIGHT_REPO_URL:-https://github.com/OneLiberty/moonlight-chrome-tizen}
+      - WGT_FILE=${MOONLIGHT_WGT_FILE:-Moonlight.wgt}
+      - VERSION=${MOONLIGHT_VERSION:-}
+      - CERT_PASSWORD=${CERT_PASSWORD:-}
+    volumes:
+      - ${CERT_DIR:-.}:/certificates:ro

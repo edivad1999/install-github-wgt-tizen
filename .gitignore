@@ -5,6 +5,9 @@
 # WGT packages
 *.wgt
 
+# Environment files
+.env
+
 # Docker
 .docker/
 

@@ -1,10 +1,8 @@
 # Tizen GitHub WGT Installer
 
-[![Build and Publish Docker Image](https://github.com/YOUR_USERNAME/tizen-github-wgt-installer/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/YOUR_USERNAME/tizen-github-wgt-installer/actions/workflows/docker-publish.yml)
+[![Build and Publish Docker Image](https://github.com/edivad1999/install-github-wgt-tizen/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/edivad1999/install-github-wgt-tizen/actions/workflows/docker-publish.yml)
 
 A generalized Docker container for installing any Tizen `.wgt` package on Samsung Smart TVs. This tool simplifies the process of downloading, optionally signing, and installing Tizen applications from GitHub releases or any direct download URL.
-
-> **Note:** Replace `YOUR_USERNAME` in all examples with your GitHub username or organization name.
 
 ## Features
 
@@ -49,15 +47,53 @@ The Docker image is automatically built and published to GitHub Container Regist
 ### Pull the Latest Image
 
 ```bash
-docker pull ghcr.io/YOUR_USERNAME/tizen-github-wgt-installer:latest
+docker pull ghcr.io/edivad1999/install-github-wgt-tizen:latest
 ```
 
 ## Usage
 
-### Basic Installation
+### Option 1: Docker Compose (Recommended)
+
+The easiest way to install popular apps using environment variables:
 
 ```bash
-docker run --rm ghcr.io/YOUR_USERNAME/tizen-github-wgt-installer:latest <TV_IP> <WGT_URL>
+# Setup
+cp .env .env
+# Edit .env and set TV_IP=192.168.0.10
+
+# Install Jellyfin (latest version)
+docker compose up jellyfin
+
+# Install Moonlight (latest version)
+docker compose up moonlight
+
+# Install custom app (configure CUSTOM_* variables in .env)
+docker compose up custom
+```
+
+**New: Flexible Environment Variable Approach**
+
+Apps are now configured using three simple variables:
+- `REPO_URL` - GitHub repository (mandatory)
+- `WGT_FILE` - Package filename (mandatory)
+- `VERSION` - Release version (optional - auto-fetches latest if empty)
+
+Example `.env`:
+```env
+TV_IP=192.168.0.10
+JELLYFIN_REPO_URL=https://github.com/jeppevinkel/jellyfin-tizen-builds
+JELLYFIN_WGT_FILE=Jellyfin.wgt
+JELLYFIN_VERSION=           # Empty = latest, or set to specific version
+```
+
+📖 **[See full Docker Compose guide](DOCKER_COMPOSE_USAGE.md)** for all options and profiles.
+
+### Option 2: Direct Docker Run
+
+For direct control or custom apps:
+
+```bash
+docker run --rm ghcr.io/edivad1999/install-github-wgt-tizen:latest <TV_IP> <WGT_URL>
 ```
 
 **Arguments:**
@@ -65,17 +101,25 @@ docker run --rm ghcr.io/YOUR_USERNAME/tizen-github-wgt-installer:latest <TV_IP> 
 - `<WGT_URL>` - Direct URL to the `.wgt` file (required)
 - `[CERT_PASSWORD]` - Certificate password for custom signing (optional)
 
-### Examples
+#### Examples
 
-#### Install Jellyfin from GitHub Releases
+**Install Jellyfin:**
 
 ```bash
-docker run --rm ghcr.io/YOUR_USERNAME/tizen-github-wgt-installer:latest \
+docker run --rm ghcr.io/edivad1999/install-github-wgt-tizen:latest \
   192.168.0.10 \
-  "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/download/2024-11-24-0431/Jellyfin.wgt"
+  "https://github.com/jeppevinkel/jellyfin-tizen-builds/releases/latest/download/Jellyfin.wgt"
 ```
 
-#### Install with Custom Certificates
+**Install Moonlight:**
+
+```bash
+docker run --rm ghcr.io/edivad1999/install-github-wgt-tizen:latest \
+  192.168.0.10 \
+  "https://github.com/OneLiberty/moonlight-chrome-tizen/releases/latest/download/Moonlight.wgt"
+```
+
+**Install with Custom Certificates:**
 
 For newer TV models that require custom certificates:
 
@@ -83,7 +127,7 @@ For newer TV models that require custom certificates:
 docker run --rm \
   -v "$(pwd)/author.p12":/certificates/author.p12 \
   -v "$(pwd)/distributor.p12":/certificates/distributor.p12 \
-  ghcr.io/YOUR_USERNAME/tizen-github-wgt-installer:latest \
+  ghcr.io/edivad1999/install-github-wgt-tizen:latest \
   192.168.0.10 \
   "https://example.com/app.wgt" \
   'YourCertPassword123!'
@@ -103,7 +147,7 @@ For ARM-based systems like MacOS M1/M2/M3 chips:
 3. Add `--platform linux/amd64` to your docker command:
    ```bash
    docker run --rm --platform linux/amd64 \
-     ghcr.io/YOUR_USERNAME/tizen-github-wgt-installer:latest \
+     ghcr.io/edivad1999/install-github-wgt-tizen:latest \
      192.168.0.10 \
      "https://example.com/app.wgt"
    ```
@@ -129,7 +173,7 @@ Add `--ulimit nofile=1024:65536` to your docker command:
 
 ```bash
 docker run --ulimit nofile=1024:65536 --rm \
-  ghcr.io/YOUR_USERNAME/tizen-github-wgt-installer:latest <TV_IP> <WGT_URL>
+  ghcr.io/edivad1999/install-github-wgt-tizen:latest <TV_IP> <WGT_URL>
 ```
 
 **`install failed[118, -11], reason: Author certificate not match`**
@@ -202,12 +246,20 @@ git push origin v1.0.0
 ```
 
 The GitHub Action will automatically build and publish the image with tags:
-- `ghcr.io/YOUR_USERNAME/tizen-github-wgt-installer:latest`
-- `ghcr.io/YOUR_USERNAME/tizen-github-wgt-installer:v1.0.0`
-- `ghcr.io/YOUR_USERNAME/tizen-github-wgt-installer:v1.0`
-- `ghcr.io/YOUR_USERNAME/tizen-github-wgt-installer:v1`
+- `ghcr.io/edivad1999/install-github-wgt-tizen:latest`
+- `ghcr.io/edivad1999/install-github-wgt-tizen:v1.0.0`
+- `ghcr.io/edivad1999/install-github-wgt-tizen:v1.0`
+- `ghcr.io/edivad1999/install-github-wgt-tizen:v1`
 
-## Finding Tizen Apps
+## Popular Tizen Apps
+
+### Pre-configured in Docker Compose
+
+- **[Jellyfin](https://github.com/jellyfin/jellyfin-tizen)** - Media server client
+  - Builds: [jeppevinkel/jellyfin-tizen-builds](https://github.com/jeppevinkel/jellyfin-tizen-builds)
+- **[Moonlight](https://github.com/OneLiberty/moonlight-chrome-tizen)** - Game streaming client (requires Tizen 5.5+)
+
+### Finding More Apps
 
 Many Tizen apps are distributed via GitHub releases. Look for:
 - Files with `.wgt` extension
