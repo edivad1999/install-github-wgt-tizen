@@ -1,6 +1,5 @@
 # Tizen GitHub WGT Installer
 
-[![Build and Publish Docker Image](https://github.com/edivad1999/install-github-wgt-tizen/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/edivad1999/install-github-wgt-tizen/actions/workflows/docker-publish.yml)
 
 A generalized Docker container for installing any Tizen `.wgt` package on Samsung Smart TVs. This tool simplifies the process of downloading, optionally signing, and installing Tizen applications from GitHub releases or any direct download URL.
 
