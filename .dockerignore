@@ -1,3 +1,11 @@
+# Secrets
+.env
+.env.*
+*.p12
+*.pfx
+*.pem
+*.key
+
 # Git
 .git
 .gitignore

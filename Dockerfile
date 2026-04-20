@@ -26,14 +26,14 @@ WORKDIR ${HOME}
 # Tizen Studio CLI must be installed as non-root in user home dir
 ARG TIZEN_STUDIO_VERSION=6.1
 ARG TIZEN_STUDIO_FILE=web-cli_Tizen_Studio_${TIZEN_STUDIO_VERSION}_ubuntu-64.bin
-ARG TIZEN_STUDIO_URL=http://download.tizen.org/sdk/Installer/tizen-studio_${TIZEN_STUDIO_VERSION}/${TIZEN_STUDIO_FILE}
+ARG TIZEN_STUDIO_URL=https://download.tizen.org/sdk/Installer/tizen-studio_${TIZEN_STUDIO_VERSION}/${TIZEN_STUDIO_FILE}
 RUN wget ${TIZEN_STUDIO_URL} \
   && chmod +x ${TIZEN_STUDIO_FILE} \
   && echo y | ./${TIZEN_STUDIO_FILE} --accept-license \
   && rm ${TIZEN_STUDIO_FILE}
 
 RUN mkdir -p ${HOME}/tizen-studio-data/profile \
-  && printf '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n<profiles version="3.1"/>\n' \
+  && printf '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n<profiles version="3.1">\n</profiles>\n' \
      > ${HOME}/tizen-studio-data/profile/profiles.xml
 
 COPY --chown=${USER} entrypoint.sh profile.xml ${HOME}/

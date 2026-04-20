@@ -148,7 +148,9 @@ if [ -n "$CERTIFICATE_PASSWORD" ]; then
     if [ -f /certificates/author.p12 ] && [ -f /certificates/distributor.p12 ]; then
         echo "Found certificate files, signing package..."
         sed -i "s/_CERTIFICATEPASSWORD_/$CERTIFICATE_PASSWORD/" profile.xml
-        sed -i '/<\/profile>/ r profile.xml' /home/developer/tizen-studio-data/profile/profiles.xml
+        sed -i 's|</profiles>||' /home/developer/tizen-studio-data/profile/profiles.xml
+        cat profile.xml >> /home/developer/tizen-studio-data/profile/profiles.xml
+        printf '</profiles>\n' >> /home/developer/tizen-studio-data/profile/profiles.xml
         tizen package -t wgt -s custom -- "$WGT_FILENAME"
     else
         echo "Error: Certificate password provided but certificate files not found."

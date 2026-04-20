@@ -1,6 +1,12 @@
 # Certificates (sensitive)
 *.p12
 *.pfx
+*.pem
+*.key
+*.crt
+*.cer
+*.jks
+*.keystore
 
 # WGT packages
 *.wgt
