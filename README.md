@@ -217,6 +217,8 @@ docker build -t tizen-installer .
 docker run --rm tizen-installer <TV_IP> <WGT_URL>
 ```
 
+The image builds from `ubuntu:22.04` and installs **Tizen Studio 6.1** CLI directly from `download.tizen.org`. No external base image required. First build downloads ~280 MB; subsequent builds use Docker layer cache.
+
 ### Automated Builds
 
 This project uses GitHub Actions to automatically build and publish Docker images to GitHub Container Registry.
@@ -270,7 +272,7 @@ Many Tizen apps are distributed via GitHub releases. Look for:
 This project was inspired by:
 - [install-jellyfin-tizen](https://github.com/Georift/install-jellyfin-tizen) - Original Jellyfin installer
 - [jellyfin-tizen](https://github.com/jellyfin/jellyfin-tizen) - Jellyfin for Tizen
-- [vitalets/docker-tizen-webos-sdk](https://github.com/vitalets/docker-tizen-webos-sdk) - Docker container with Tizen SDK
+- [vitalets/docker-tizen-webos-sdk](https://github.com/vitalets/docker-tizen-webos-sdk) - Reference for Tizen Studio Docker setup
 
 ## License
 
