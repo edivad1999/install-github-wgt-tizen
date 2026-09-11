@@ -21,6 +21,26 @@ fetch_latest_version() {
     echo "$tag"
 }
 
+# Function to tell whether a string contains version placeholders
+has_placeholder() {
+    [[ "$1" == *"{version}"* || "$1" == *"{tag}"* ]]
+}
+
+# Function to expand version placeholders in a template
+#   {tag}     -> release tag as-is         (e.g. v1.8.0)
+#   {version} -> tag without leading "v"   (e.g. 1.8.0)
+expand_placeholders() {
+    local template="$1"
+    local tag="$2"
+    # Strip the leading "v" only for v-prefixed version tags (v1.8.0 -> 1.8.0),
+    # never for date/build style tags (2024-11-24-0431, samsung_wasm-193898).
+    local version="$tag"
+    [[ "$tag" =~ ^v[0-9] ]] && version="${tag#v}"
+    local result="${template//\{tag\}/$tag}"
+    result="${result//\{version\}/$version}"
+    echo "$result"
+}
+
 # Determine mode: Environment variables or command-line arguments
 if [ -n "$REPO_URL" ] && [ -n "$WGT_FILE" ]; then
     # ========================================
@@ -44,15 +64,19 @@ if [ -n "$REPO_URL" ] && [ -n "$WGT_FILE" ]; then
     if [ -z "$VERSION" ]; then
         echo "VERSION not provided, fetching latest release..."
         VERSION=$(fetch_latest_version "$REPO_URL")
-        DOWNLOAD_PATH="releases/latest/download"
     else
         echo "Using specified version: $VERSION"
-        DOWNLOAD_PATH="releases/download/$VERSION"
+    fi
+
+    # Expand version placeholders in the package name
+    # (e.g. WGT_FILE=Litefin-{version}-Tizen-Modern.wgt -> Litefin-1.8.0-Tizen-Modern.wgt)
+    WGT_FILENAME=$(expand_placeholders "$WGT_FILE" "$VERSION")
+    if [ "$WGT_FILENAME" != "$WGT_FILE" ]; then
+        echo "Resolved package name: $WGT_FILENAME"
     fi
 
     # Construct the download URL
-    WGT_URL="$REPO_URL/$DOWNLOAD_PATH/$WGT_FILE"
-    WGT_FILENAME="$WGT_FILE"
+    WGT_URL="$REPO_URL/releases/download/$VERSION/$WGT_FILENAME"
 
     # CERT_PASSWORD from environment
     CERTIFICATE_PASSWORD="${CERT_PASSWORD:-}"
@@ -67,6 +91,24 @@ elif [ -n "$1" ] && [ -n "$2" ]; then
     TV_IP="$1"
     WGT_URL="$2"
     CERTIFICATE_PASSWORD="$3"
+
+    # Expand version placeholders in the URL
+    # (e.g. .../releases/download/{tag}/Litefin-{version}-Tizen-Modern.wgt)
+    if has_placeholder "$WGT_URL"; then
+        if [ -z "$VERSION" ]; then
+            # No VERSION given: derive the repository from the URL and resolve the latest tag
+            REPO_FROM_URL="${WGT_URL%%/releases/*}"
+            if [ "$REPO_FROM_URL" = "$WGT_URL" ]; then
+                echo "Error: URL uses {version}/{tag} placeholders but VERSION is not set"
+                echo "       and the repository could not be derived from the URL."
+                echo "URL: $WGT_URL"
+                exit 1
+            fi
+            VERSION=$(fetch_latest_version "$REPO_FROM_URL")
+        fi
+        WGT_URL=$(expand_placeholders "$WGT_URL" "$VERSION")
+        echo "Resolved URL: $WGT_URL"
+    fi
 
     # Extract filename from URL
     WGT_FILENAME=$(basename "$WGT_URL" | sed 's/?.*//')
@@ -88,9 +130,14 @@ else
     echo "Usage Option 2 (Command-Line):"
     echo "  $0 <TV_IP> <WGT_URL> [CERTIFICATE_PASSWORD]"
     echo ""
+    echo "Version placeholders (usable in WGT_FILE and in <WGT_URL>):"
+    echo "  {tag}     -> release tag as-is       (e.g. v1.8.0)"
+    echo "  {version} -> tag without leading v   (e.g. 1.8.0)"
+    echo ""
     echo "Examples:"
     echo "  TV_IP=192.168.0.10 REPO_URL=https://github.com/user/repo WGT_FILE=App.wgt $0"
     echo "  TV_IP=192.168.0.10 REPO_URL=https://github.com/user/repo WGT_FILE=App.wgt VERSION=v1.0.0 $0"
+    echo "  TV_IP=192.168.0.10 REPO_URL=https://github.com/MoazSalem/litefin WGT_FILE=Litefin-{version}-Tizen-Modern.wgt $0"
     echo "  $0 192.168.0.10 https://example.com/app.wgt"
     exit 1
 fi
