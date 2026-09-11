@@ -35,6 +35,23 @@ services:
     volumes:
       - ${CERT_DIR:-.}:/certificates:ro
 
+  # Litefin installer (release assets carry the version in their filename)
+  litefin:
+    image: ghcr.io/edivad1999/install-github-wgt-tizen:latest
+    # Uncomment for local development:
+    # build: .
+    network_mode: host
+    env_file:
+      - .env
+    environment:
+      - TV_IP=${TV_IP}
+      - REPO_URL=${LITEFIN_REPO_URL:-https://github.com/MoazSalem/litefin}
+      - WGT_FILE=${LITEFIN_WGT_FILE:-Litefin-{version}-Tizen-Modern.wgt}
+      - VERSION=${LITEFIN_VERSION:-}
+      - CERT_PASSWORD=${CERT_PASSWORD:-}
+    volumes:
+      - ${CERT_DIR:-.}:/certificates:ro
+
   # Moonlight installer
   moonlight:
     image: ghcr.io/edivad1999/install-github-wgt-tizen:latest
