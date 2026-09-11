@@ -66,6 +66,9 @@ docker compose up jellyfin
 # Install Moonlight (latest version)
 docker compose up moonlight
 
+# Install Litefin (latest version)
+docker compose up litefin
+
 # Install custom app (configure CUSTOM_* variables in .env)
 docker compose up custom
 ```
@@ -74,7 +77,7 @@ docker compose up custom
 
 Apps are now configured using three simple variables:
 - `REPO_URL` - GitHub repository (mandatory)
-- `WGT_FILE` - Package filename (mandatory)
+- `WGT_FILE` - Package filename (mandatory, supports version placeholders)
 - `VERSION` - Release version (optional - auto-fetches latest if empty)
 
 Example `.env`:
@@ -84,6 +87,33 @@ JELLYFIN_REPO_URL=https://github.com/jeppevinkel/jellyfin-tizen-builds
 JELLYFIN_WGT_FILE=Jellyfin.wgt
 JELLYFIN_VERSION=           # Empty = latest, or set to specific version
 ```
+
+**Version placeholders (parametric releases)**
+
+Some projects ship assets whose filename contains the release version, e.g.
+[Litefin](https://github.com/MoazSalem/litefin) publishes `Litefin-1.8.0-Tizen-Modern.wgt`
+under tag `v1.8.0`. Put a placeholder in `WGT_FILE` and it is filled in with the
+resolved release:
+
+| Placeholder | Expands to | Example (tag `v1.8.0`) |
+|-------------|------------|------------------------|
+| `{version}` | Tag without the leading `v` | `1.8.0` |
+| `{tag}`     | Tag as-is | `v1.8.0` |
+
+```env
+TV_IP=192.168.0.10
+LITEFIN_REPO_URL=https://github.com/MoazSalem/litefin
+LITEFIN_WGT_FILE=Litefin-{version}-Tizen-Modern.wgt
+LITEFIN_VERSION=            # Empty = latest, or pin e.g. v1.8.0
+```
+
+```bash
+docker compose up litefin
+```
+
+With `LITEFIN_VERSION` empty the latest tag is resolved first (`v1.8.0`), then the
+package is downloaded from
+`https://github.com/MoazSalem/litefin/releases/download/v1.8.0/Litefin-1.8.0-Tizen-Modern.wgt`.
 
 📖 **[See full Docker Compose guide](DOCKER_COMPOSE_USAGE.md)** for all options and profiles.
 
@@ -97,7 +127,7 @@ docker run --rm ghcr.io/edivad1999/install-github-wgt-tizen:latest <TV_IP> <WGT_
 
 **Arguments:**
 - `<TV_IP>` - IP address of your Samsung TV (required)
-- `<WGT_URL>` - Direct URL to the `.wgt` file (required)
+- `<WGT_URL>` - Direct URL to the `.wgt` file (required, supports `{version}`/`{tag}` placeholders)
 - `[CERT_PASSWORD]` - Certificate password for custom signing (optional)
 
 #### Examples
@@ -116,6 +146,17 @@ docker run --rm ghcr.io/edivad1999/install-github-wgt-tizen:latest \
 docker run --rm ghcr.io/edivad1999/install-github-wgt-tizen:latest \
   192.168.0.10 \
   "https://github.com/OneLiberty/moonlight-chrome-tizen/releases/latest/download/Moonlight.wgt"
+```
+
+**Install Litefin (parametric release asset):**
+
+The URL may use `{version}`/`{tag}` placeholders. Without `VERSION` the latest tag is
+resolved from the repository part of the URL; set `VERSION` to pin a release.
+
+```bash
+docker run --rm ghcr.io/edivad1999/install-github-wgt-tizen:latest \
+  192.168.0.10 \
+  "https://github.com/MoazSalem/litefin/releases/download/{tag}/Litefin-{version}-Tizen-Modern.wgt"
 ```
 
 **Install with Custom Certificates:**
@@ -259,6 +300,7 @@ The GitHub Action will automatically build and publish the image with tags:
 - **[Jellyfin](https://github.com/jellyfin/jellyfin-tizen)** - Media server client
   - Builds: [jeppevinkel/jellyfin-tizen-builds](https://github.com/jeppevinkel/jellyfin-tizen-builds)
 - **[Moonlight](https://github.com/OneLiberty/moonlight-chrome-tizen)** - Game streaming client (requires Tizen 5.5+)
+- **[Litefin](https://github.com/MoazSalem/litefin)** - Lightweight Jellyfin client (versioned asset names)
 
 ### Finding More Apps
 

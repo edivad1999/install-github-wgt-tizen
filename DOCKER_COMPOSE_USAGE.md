@@ -29,6 +29,9 @@ docker compose up jellyfin
 # Install Moonlight (latest version)
 docker compose up moonlight
 
+# Install Litefin (latest version)
+docker compose up litefin
+
 # Install custom app (configure CUSTOM_* variables in .env first)
 docker compose up custom
 ```
@@ -38,8 +41,21 @@ docker compose up custom
 The installer now supports a flexible environment variable approach where you specify:
 
 1. **`REPO_URL`** - The GitHub repository URL (mandatory)
-2. **`WGT_FILE`** - The .wgt filename (mandatory)
+2. **`WGT_FILE`** - The .wgt filename (mandatory, supports version placeholders)
 3. **`VERSION`** - Specific release version (optional - fetches latest if not specified)
+
+### Version Placeholders (Parametric Releases)
+
+When a project embeds the release version in its asset filenames, put a placeholder in
+`WGT_FILE` instead of hardcoding the version:
+
+| Placeholder | Expands to | Example (tag `v1.8.0`) |
+|-------------|------------|------------------------|
+| `{version}` | Release tag without the leading `v` | `1.8.0` |
+| `{tag}`     | Release tag as-is | `v1.8.0` |
+
+The leading `v` is only stripped from v-prefixed version tags, so date/build style tags
+(`2024-11-24-0431`, `samsung_wasm-19389899315`) are left untouched.
 
 ### Example Configuration
 
@@ -61,6 +77,7 @@ JELLYFIN_VERSION=2024-11-24-0431
 |---------|-----|-------------|
 | `jellyfin` | Jellyfin | Media server client (configure via `JELLYFIN_*` env vars) |
 | `moonlight` | Moonlight | Game streaming client (configure via `MOONLIGHT_*` env vars) |
+| `litefin` | Litefin | Lightweight Jellyfin client, versioned asset names (configure via `LITEFIN_*` env vars) |
 | `custom` | Any App | Install any app (configure via `CUSTOM_*` env vars) |
 
 ## Configuration Examples
@@ -117,12 +134,43 @@ MOONLIGHT_VERSION=
 docker compose up moonlight
 ```
 
+### Install Latest Litefin
+
+Litefin releases assets like `Litefin-1.8.0-Tizen-Modern.wgt` under tag `v1.8.0`, so the
+filename is written with a `{version}` placeholder:
+
+```env
+TV_IP=192.168.0.10
+LITEFIN_REPO_URL=https://github.com/MoazSalem/litefin
+LITEFIN_WGT_FILE=Litefin-{version}-Tizen-Modern.wgt
+LITEFIN_VERSION=
+```
+
+```bash
+docker compose up litefin
+```
+
+### Install Specific Litefin Version
+
+```env
+TV_IP=192.168.0.10
+LITEFIN_REPO_URL=https://github.com/MoazSalem/litefin
+LITEFIN_WGT_FILE=Litefin-{version}-Tizen-Modern.wgt
+LITEFIN_VERSION=v1.8.0
+```
+
+```bash
+docker compose up litefin
+```
+
+Downloads `https://github.com/MoazSalem/litefin/releases/download/v1.8.0/Litefin-1.8.0-Tizen-Modern.wgt`.
+
 ### Install Custom App
 
 ```env
 TV_IP=192.168.0.10
 CUSTOM_REPO_URL=https://github.com/username/my-tizen-app
-CUSTOM_WGT_FILE=MyApp.wgt
+CUSTOM_WGT_FILE=MyApp-{version}.wgt
 CUSTOM_VERSION=v1.0.0
 ```
 
@@ -185,15 +233,27 @@ docker compose up jellyfin --platform linux/amd64
 
 When `VERSION` is empty or not set:
 
-1. The script fetches the latest release from the repository
-2. Constructs the download URL: `{REPO_URL}/releases/latest/download/{WGT_FILE}`
-3. Downloads and installs the latest version
+1. The script resolves the latest release tag from the repository
+2. Expands any `{version}` / `{tag}` placeholders in `WGT_FILE` with that tag
+3. Constructs the download URL: `{REPO_URL}/releases/download/{resolved tag}/{WGT_FILE}`
+4. Downloads and installs the latest version
 
 When `VERSION` is specified:
 
 1. Uses the exact version you provided
-2. Constructs the download URL: `{REPO_URL}/releases/download/{VERSION}/{WGT_FILE}`
-3. Downloads and installs that specific version
+2. Expands any `{version}` / `{tag}` placeholders in `WGT_FILE` with it
+3. Constructs the download URL: `{REPO_URL}/releases/download/{VERSION}/{WGT_FILE}`
+4. Downloads and installs that specific version
+
+The same placeholders work in the direct-URL (command line) mode. There, when `VERSION`
+is not set, the repository is derived from the part of the URL before `/releases/` and
+its latest tag is resolved:
+
+```bash
+docker run --rm ghcr.io/edivad1999/install-github-wgt-tizen:latest \
+  192.168.0.10 \
+  "https://github.com/MoazSalem/litefin/releases/download/{tag}/Litefin-{version}-Tizen-Modern.wgt"
+```
 
 ## Available WGT Files
 
@@ -208,6 +268,16 @@ From [jeppevinkel/jellyfin-tizen-builds](https://github.com/jeppevinkel/jellyfin
 ### Moonlight
 From [OneLiberty/moonlight-chrome-tizen](https://github.com/OneLiberty/moonlight-chrome-tizen):
 - `Moonlight.wgt` - Game streaming client
+
+### Litefin Variants
+From [MoazSalem/litefin](https://github.com/MoazSalem/litefin) (filenames carry the version,
+so use `{version}`):
+- `Litefin-{version}-Tizen-Modern.wgt` - Tizen 6.5+
+- `Litefin-{version}-Tizen-Normal.wgt` - Standard build
+- `Litefin-{version}-Tizen-Normal-Oblong.wgt` - Standard build, oblong screens
+- `Litefin-{version}-Tizen-Legacy.wgt` - Older TVs
+- `Litefin-{version}-Tizen-Ultra-Legacy.wgt` - Oldest TVs
+- `Litefin-{version}-Tizen-Ultra-Legacy-NoService.wgt` - Oldest TVs, no background service
 
 ## Troubleshooting
 
